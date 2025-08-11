@@ -3,17 +3,26 @@ import pennylane.numpy as pnp
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def create_qnn(n_layers, n_qubits):
+def create_qnn(n_layers, n_qubits, n_gates):
     dev = qml.device('default.qubit', wires=n_qubits)
 
     @qml.qnode(dev)
     def circuit(params):
         for layer in range(n_layers):
             for qubit in range(n_qubits):
-                qml.RX(params[layer][qubit][0], wires=qubit)
-                qml.RZ(params[layer][qubit][1], wires=qubit)
+                if n_gates == 1:
+                    qml.RX(params[layer][qubit][0], wires=qubit)
+                elif n_gates == 2:
+                    qml.RX(params[layer][qubit][0], wires=qubit)
+                    qml.RZ(params[layer][qubit][1], wires=qubit)
+                elif n_gates == 3:
+                    qml.RX(params[layer][qubit][0], wires=qubit)
+                    qml.RZ(params[layer][qubit][1], wires=qubit)
+                    qml.RY(params[layer][qubit][2], wires=qubit)
 
             for qubit in range(n_qubits):
+                if n_qubits <= 1:
+                    continue
                 next_qubit = (qubit + 1) % n_qubits
                 qml.CNOT(wires=[qubit, next_qubit])
 
@@ -21,12 +30,12 @@ def create_qnn(n_layers, n_qubits):
 
     return circuit
 
-def generate_parameter_samples(n_layers, n_qubits, n_samples):
+def generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=2):
     """
     generates n_samples random parameter tensors
     """
     pnp.random.seed(42)
-    samples = [pnp.random.uniform(0, 2*pnp.pi, size=(n_layers, n_qubits, 2)) for _ in range(n_samples)]
+    samples = [pnp.random.uniform(0, 2*pnp.pi, size=(n_layers, n_qubits, n_gates)) for _ in range(n_samples)]
     return pnp.array(samples)
 
 def calculate_hessian_norms(qnn, samples):
@@ -74,23 +83,18 @@ if __name__ == '__main__':
     # --- Configuration ---
     n_qubits = 4
     n_layers = 2
+    n_gates = 3
     n_samples = 20
 
+    # --- QNN and Data Generation ---
+    qnn = create_qnn(n_layers, n_qubits, n_gates)
+    #qnn = create_qnn_one(n_layers, n_qubits)
+    samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
+
     # --- Theoretical Bound Calculation ---
-    P = n_layers * n_qubits * 2
+    P = n_layers * n_qubits * n_gates
     norm_M = 1.0
     L_bound = P * norm_M
-
-    print("--- Experiment Setup ---")
-    print(f"Number of Qubits: {n_qubits}")
-    print(f"Number of Layers: {n_layers}")
-    print(f"Total Parameters (P): {P}")
-    print(f"Observable: PauliZ(0), Norm ||M||_2 = {norm_M}")
-    print(f"Theoretical L-Smoothness Bound (L <= P): {L_bound:.4f}\n")
-
-    # --- QNN and Data Generation ---
-    qnn = create_qnn(n_layers, n_qubits)
-    samples = generate_parameter_samples(n_layers, n_qubits, n_samples)
 
     # --- Experiment ---
     hessian_norms = calculate_hessian_norms(qnn, samples)
@@ -100,6 +104,13 @@ if __name__ == '__main__':
 
     # --- Verification ---
     all_within_bound = all(norm <= L_bound for norm in hessian_norms)
+    print("--- Experiment Setup ---")
+    print(f"Number of Qubits: {n_qubits}")
+    print(f"Number of Layers: {n_layers}")
+    print(f"Total Parameters (P): {P}")
+    print(f"Observable: PauliZ(0), Norm ||M||_2 = {norm_M}")
+    print(f"Theoretical L-Smoothness Bound (L <= P): {L_bound:.4f}")
+    print(f"Largest Hessian Norm: {pnp.max(hessian_norms)}")
     print("\n--- Verification Result ---")
     print(f"All calculated Hessian norms are within the theoretical bound: {all_within_bound}")
 
