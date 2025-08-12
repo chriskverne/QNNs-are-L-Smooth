@@ -1,14 +1,28 @@
-import itertools
-
 import pennylane as qml
 import pennylane.numpy as pnp
-import matplotlib.pyplot as plt
-import seaborn as sns
+from qiskit.providers.fake_provider import Fake127QPulseV1
+from qiskit_aer.noise import NoiseModel
 
-def create_qnn(n_layers, n_qubits, n_gates):
-    dev = qml.device('default.qubit', wires=n_qubits)
+def get_noisy_device(n_qubits):
+    # 1. Get the fake backend object. This is an offline snapshot of a real IBMQ device.
+    fake_backend = Fake127QPulseV1()
+    print(f"Using noise model from: {fake_backend.name}")
 
-    @qml.qnode(dev)
+    # 2. Create a noise model from the backend's properties.
+    noise_model = NoiseModel.from_backend(fake_backend)
+
+    # 3. Create a PennyLane device using qiskit.aer, a high-performance Qiskit simulator.
+    dev = qml.device(
+        'qiskit.aer',
+        wires=n_qubits,
+        noise_model=noise_model,
+        shots=1000
+    )
+    print("Device created successfully.")
+    return dev
+
+def create_qnn(dev, n_layers, n_qubits, n_gates):
+    @qml.qnode(dev, diff_method="finite-diff")
     def circuit(params):
         for layer in range(n_layers):
             for qubit in range(n_qubits):
@@ -32,10 +46,6 @@ def create_qnn(n_layers, n_qubits, n_gates):
             [1 / n_qubits] * n_qubits,
             [qml.PauliZ(i) for i in range(n_qubits)]
         )
-        # coeffs = [1.0, 1.2]
-        # obs = [qml.PauliZ(0) @ qml.PauliZ(1), qml.PauliX(0)]
-        # observable = qml.Hamiltonian(coeffs, obs)
-
         return qml.expval(observable)
 
     return circuit
@@ -50,56 +60,37 @@ def generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=2):
 
 def calculate_hessian_norms(qnn, samples):
     hessian_norms = []
-    hessian_fn = qml.jacobian(qml.grad(qnn))
     for i, params in enumerate(samples):
-        # Output of QNN only accepts flat parameter vector
+        print(f"Calculating Hessian for sample {i + 1}/{len(samples)}...")
         flat_params = params.flatten()
         def cost_fn_flat(p_flat):
             p_reshaped = p_flat.reshape(params.shape)
             return qnn(p_reshaped)
 
-        # Calculate hessian matrix
         hessian_matrix = qml.jacobian(qml.grad(cost_fn_flat))(flat_params)
-
-        # Calculate the spectral norm (largest singular value) of the Hessian = largest absolute eigenvalue.
         spectral_norm = pnp.linalg.norm(hessian_matrix, ord=2)
         hessian_norms.append(spectral_norm)
 
     return hessian_norms
 
 
-def plot_results(hessian_norms, bound, P):
-    sns.set_theme(style="whitegrid")
-    plt.figure(figsize=(10, 6))
-    # Plot the individual Hessian norms
-    plt.scatter(range(len(hessian_norms)), hessian_norms, label='Experimental Hessian Norm', color='royalblue',
-                zorder=5)
-    # Plot the theoretical bound
-    plt.axhline(y=bound, color='crimson', linestyle='--', linewidth=2, label=f'Theoretical Bound (L = P = {P})')
-
-    plt.title('Experimental Verification of L-Smoothness Bound', fontsize=16)
-    plt.xlabel('Parameter Sample Index', fontsize=12)
-    plt.ylabel('Spectral Norm of Hessian', fontsize=12)
-    plt.legend(fontsize=10)
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-    plt.tight_layout()
-    plt.show()
-
-
-# ==================================================================
-# Main execution block
 # ==================================================================
 if __name__ == '__main__':
     # --- Configuration ---
-    n_qubit_combos = [1, 2, 4, 6, 8]
-    n_layer_combos = [1,2,3]
-    n_gate_combos = [1,2,3]
-    all_combos = itertools.product(n_layer_combos, n_qubit_combos, n_gate_combos)
+    n_qubit_combos = [1, 2, 4, 8]
+    n_layers = 1
+    n_gates = 1
+    n_samples = 10
 
-    n_samples = 100
-    for n_layers, n_qubits, n_gates in all_combos:
-        # --- QNN and Data Generation ---
-        qnn = create_qnn(n_layers, n_qubits, n_gates)
+    for n_qubits in n_qubit_combos:
+        # --- Device and QNN Creation ---
+        # 1. Get the noisy device
+        noisy_device = get_noisy_device(n_qubits)
+
+        # 2. Create the QNN, passing the noisy device to it
+        qnn = create_qnn(noisy_device, n_layers, n_qubits, n_gates)
+
+        # --- Data Generation ---
         samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
 
         # --- Theoretical Bound Calculation ---
@@ -110,13 +101,8 @@ if __name__ == '__main__':
         # --- Experiment ---
         hessian_norms = calculate_hessian_norms(qnn, samples)
 
-        # --- Visualization ---
-        #plot_results(hessian_norms, L_bound, P)
-
-        # --- Verification ---
-        all_within_bound = all(norm <= L_bound for norm in hessian_norms)
+        # --- Verification & Output ---
         print("--- Experiment Setup ---")
-        print(f"Number of Layers: {n_layers}, Number of Qubits: {n_qubits}, Number of Gates: {n_gates}, Total Parameters (P): {P}")
+        print(f"Number of Qubits: {n_qubits}, Number of Layers: {n_layers}, Total Parameters (P): {P}")
         print(f"Theoretical L-Smoothness Bound (L <= P): {L_bound:.4f}")
         print(f"Largest Hessian Norm: {pnp.max(hessian_norms)}")
-
