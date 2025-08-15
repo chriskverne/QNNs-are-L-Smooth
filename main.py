@@ -1,5 +1,4 @@
 import itertools
-
 import pennylane as qml
 import pennylane.numpy as pnp
 import matplotlib.pyplot as plt
@@ -7,6 +6,8 @@ import seaborn as sns
 
 def create_qnn(n_layers, n_qubits, n_gates):
     dev = qml.device('default.qubit', wires=n_qubits)
+    #dev = qml.device('lightning.qubit', wires=n_qubits)
+    #dev = qml.device('lightning.gpu', wires=n_qubits)
 
     @qml.qnode(dev)
     def circuit(params):
@@ -90,14 +91,19 @@ def plot_results(hessian_norms, bound, P):
 # Main execution block
 # ==================================================================
 if __name__ == '__main__':
-    # --- Configuration ---
-    n_qubit_combos = [1, 2, 4, 6, 8]
-    n_layer_combos = [1,2,3]
-    n_gate_combos = [1,2,3]
-    all_combos = itertools.product(n_layer_combos, n_qubit_combos, n_gate_combos)
+    results_data = []
 
+    """
+    Experiment 1: Fix N_qubits, N_Gates, Increase N_Layers
+    Either 2,3 or 4 qubits sounds good
+    N_Gates = 2 or 3 sounds good
+    """
     n_samples = 100
-    for n_layers, n_qubits, n_gates in all_combos:
+    n_gates = 3
+    n_qubits = 2
+    n_layer_combos = [14,15,16,17,18,19,20]
+
+    for n_layers in n_layer_combos:
         # --- QNN and Data Generation ---
         qnn = create_qnn(n_layers, n_qubits, n_gates)
         samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
@@ -119,4 +125,6 @@ if __name__ == '__main__':
         print(f"Number of Layers: {n_layers}, Number of Qubits: {n_qubits}, Number of Gates: {n_gates}, Total Parameters (P): {P}")
         print(f"Theoretical L-Smoothness Bound (L <= P): {L_bound:.4f}")
         print(f"Largest Hessian Norm: {pnp.max(hessian_norms)}")
+        results_data.append((n_layers, n_qubits, n_gates, pnp.max(hessian_norms)))
 
+    print(results_data)
