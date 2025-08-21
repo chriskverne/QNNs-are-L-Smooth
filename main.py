@@ -4,10 +4,8 @@ import pennylane.numpy as pnp
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def create_qnn(n_layers, n_qubits, n_gates):
+def create_qnn(n_layers, n_qubits, n_gates, entangled=True):
     dev = qml.device('default.qubit', wires=n_qubits)
-    #dev = qml.device('lightning.qubit', wires=n_qubits)
-    #dev = qml.device('lightning.gpu', wires=n_qubits)
 
     @qml.qnode(dev)
     def circuit(params):
@@ -23,11 +21,12 @@ def create_qnn(n_layers, n_qubits, n_gates):
                     qml.RZ(params[layer][qubit][1], wires=qubit)
                     qml.RY(params[layer][qubit][2], wires=qubit)
 
-            for qubit in range(n_qubits):
-                if n_qubits <= 1:
-                    continue
-                next_qubit = (qubit + 1) % n_qubits
-                qml.CNOT(wires=[qubit, next_qubit])
+            if entangled:
+                for qubit in range(n_qubits):
+                    if n_qubits <= 1:
+                        continue
+                    next_qubit = (qubit + 1) % n_qubits
+                    qml.CNOT(wires=[qubit, next_qubit])
 
         observable = qml.Hamiltonian(
             [1 / n_qubits] * n_qubits,
@@ -100,12 +99,13 @@ if __name__ == '__main__':
     """
     n_samples = 100
     n_gates = 3
-    n_qubits = 2
-    n_layer_combos = [14,15,16,17,18,19,20]
+    n_qubits = 10
+    n_layer_combos = [1,2,3,4] # [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    entanglement = False
 
     for n_layers in n_layer_combos:
         # --- QNN and Data Generation ---
-        qnn = create_qnn(n_layers, n_qubits, n_gates)
+        qnn = create_qnn(n_layers, n_qubits, n_gates, entangled=entanglement)
         samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
 
         # --- Theoretical Bound Calculation ---

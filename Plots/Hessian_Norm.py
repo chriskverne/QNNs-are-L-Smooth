@@ -12,7 +12,7 @@ from sympy.printing.pretty.pretty_symbology import line_width
 # tenQ_twoG = [(1, 10, 2, 0.40978141209777946), (2, 10, 2, 0.163454521219675), (3, 10, 2, 0.32221696271360833), (4, 10, 2, 0.2017337963842811)]
 
 
-"""3 Gates"""
+"""3 Gates WITH ENTANGLEMENT"""
 # q = 1, g = 3, l = [1,5,10, 15, 20, 25, 30, 35, 40]
 oneQ_threeG = [(1, 1, 3, 1.965525726370158), (5, 1, 3, 6.436282116066916), (10, 1, 3, 11.776384364142976), (15, 1, 3, 16.783976234411604), (20, 1, 3, 22.177215728608942), (25, 1, 3, 27.513140120674816), (30, 1, 3, 32.29561382430927), (35, 1, 3, 39.08914586864514), (40, 1, 3, 44.63155788758197)]
 
@@ -28,24 +28,67 @@ eightQ_threeG = [(1, 8, 3, 0.7682947642956021), (2, 8, 3, 0.5068252216608563), (
 # q = 10, g = 3, l = [1,2,3,4]
 tenQ_threeG = [(1, 10, 3, 0.6015859484660139), (2, 10, 3, 0.31655758281558377), (3, 10, 3, 0.3018106946248048), (4, 10, 3, 0.262804728536154)]
 
-active = tenQ_threeG
+"""3 Gates NO ENTANGLEMENT"""
+no_twoQ_threeG = [(1, 2, 3, 0.9902355133415315), (2, 2, 3, 1.4818437030837714), (3, 2, 3, 2.153426077099075), (4, 2, 3, 2.8551045049470862), (5, 2, 3, 3.223809002946435), (6, 2, 3, 3.8730663851775966), (7, 2, 3, 4.5329139332533845), (8, 2, 3, 4.958577680421357), (9, 2, 3, 5.443345644449277), (10, 2, 3, 5.946322380201764), (11, 2, 3, 7.091564604608551), (12, 2, 3, 6.868824899442566), (13, 2, 3, 7.373758022139593), (14, 2, 3, 8.237350838681651), (15, 2, 3, 8.968637669240085), (16, 2, 3, 9.596989818977747), (17, 2, 3, 10.025201102425342), (18, 2, 3, 10.475304985201685), (19, 2, 3, 11.088152551149335), (20, 2, 3, 11.442693900868045)]
 
-# Extract the number of layers for the x-axis labels
-n_layers_list = [(item[0] * item[1] * item[2]) for item in active]
+no_fourQ_threeG = [(1, 4, 3, 0.49806386817873116), (2, 4, 3, 0.7444517789590265), (3, 4, 3, 1.1045676552885146), (4, 4, 3, 1.4077797951282935), (5, 4, 3, 1.7289122060684776), (6, 4, 3, 1.9702909790517709), (7, 4, 3, 2.222742359965731), (8, 4, 3, 2.57487787250329), (9, 4, 3, 2.821396209557449), (10, 4, 3, 3.0824107749363328)]
 
-# Ratio = max_hessian_norm / (n_layers * n_qubits * n_gates)
-tightness_ratios = [item[3]*100 / (item[0] * item[1] * item[2]) for item in active]
+no_eightQ_threeG = [(1, 8, 3, 0.24913336241455764), (2, 8, 3, 0.3731099860619447), (3, 8, 3, 0.5813920938301481), (4, 8, 3, 0.732694961298253), (5, 8, 3, 0.8534865904199935)]
 
-# Create the bar chart
-plt.figure(figsize=(10, 6))
-plt.plot(n_layers_list, tightness_ratios, color='blue', linewidth=4)
+entanglement_data = eightQ_threeG
+no_entanglement_data = no_eightQ_threeG
 
-# Add titles and labels for clarity
-plt.xlabel('Number of Parameters')
-plt.ylabel('Measured Norm / Theoretical Bound')
-plt.title('Bound Tightness vs. Number of Layers for 4-Qubit QNN')
-plt.xticks(n_layers_list) # Ensure all layer numbers are shown as ticks
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.ylim(0, max(tightness_ratios) + 10)
-plt.gca().set_facecolor("#e2dddd")
+# Extract data for plotting
+n_layers_ent = [(item[0] * item[1] * item[2]) for item in entanglement_data]
+tightness_ratios_ent = [item[3]*100 / (item[0] * item[1] * item[2]) for item in entanglement_data]
+
+n_layers_no_ent = [(item[0] * item[1] * item[2]) for item in no_entanglement_data]
+tightness_ratios_no_ent = [item[3]*100 / (item[0] * item[1] * item[2]) for item in no_entanglement_data]
+
+# Create the comparison plot
+plt.figure(figsize=(12, 7))
+plt.plot(n_layers_ent, tightness_ratios_ent, color='blue', linewidth=3,
+         marker='o', markersize=6, label='With Entanglement')
+plt.plot(n_layers_no_ent, tightness_ratios_no_ent, color='red', linewidth=3,
+         marker='s', markersize=6, label='No Entanglement')
+
+# Add titles and labels
+plt.xlabel('Number of Parameters', fontsize=12)
+plt.ylabel('Measured Norm / Theoretical Bound (%)', fontsize=12)
+plt.title('Bound Tightness Comparison: 2-Qubit QNN with 3 Gates', fontsize=14)
+plt.legend(fontsize=11, loc='best')
+plt.grid(axis='both', linestyle='--', alpha=0.5)
+plt.gca().set_facecolor("#f5f5f5")
+
+# Set y-axis limit
+max_y = max(max(tightness_ratios_ent), max(tightness_ratios_no_ent))
+plt.ylim(0, max_y + 5)
+
+plt.tight_layout()
 plt.show()
+
+
+
+
+
+# active = no_fourQ_threeG
+#
+# # Extract the number of layers for the x-axis labels
+# n_layers_list = [(item[0] * item[1] * item[2]) for item in active]
+#
+# # Ratio = max_hessian_norm / (n_layers * n_qubits * n_gates)
+# tightness_ratios = [item[3]*100 / (item[0] * item[1] * item[2]) for item in active]
+#
+# # Create the bar chart
+# plt.figure(figsize=(10, 6))
+# plt.plot(n_layers_list, tightness_ratios, color='blue', linewidth=4)
+#
+# # Add titles and labels for clarity
+# plt.xlabel('Number of Parameters')
+# plt.ylabel('Measured Norm / Theoretical Bound')
+# plt.title('Bound Tightness vs. Number of Layers for 4-Qubit QNN')
+# plt.xticks(n_layers_list) # Ensure all layer numbers are shown as ticks
+# plt.grid(axis='y', linestyle='--', alpha=0.7)
+# plt.ylim(0, max(tightness_ratios) + 10)
+# plt.gca().set_facecolor("#e2dddd")
+# plt.show()
