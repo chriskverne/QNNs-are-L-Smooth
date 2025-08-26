@@ -63,6 +63,7 @@ def calculate_hessian_norms(qnn, samples):
 
         # Calculate the spectral norm (largest singular value) of the Hessian = largest absolute eigenvalue.
         spectral_norm = pnp.linalg.norm(hessian_matrix, ord=2)
+        #eigenvalues = pnp.linalg.eigvalsh(hessian_matrix)
         hessian_norms.append(spectral_norm)
 
     return hessian_norms

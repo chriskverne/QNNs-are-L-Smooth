@@ -35,8 +35,11 @@ no_fourQ_threeG = [(1, 4, 3, 0.49806386817873116), (2, 4, 3, 0.7444517789590265)
 
 no_eightQ_threeG = [(1, 8, 3, 0.24913336241455764), (2, 8, 3, 0.3731099860619447), (3, 8, 3, 0.5813920938301481), (4, 8, 3, 0.732694961298253), (5, 8, 3, 0.8534865904199935)]
 
-entanglement_data = eightQ_threeG
-no_entanglement_data = no_eightQ_threeG
+no_tenQ_threeG = [(1, 10, 3, 0.19979157602750372), (2, 10, 3, 0.2985465788024339), (3, 10, 3, 0.47265486585354294), (4, 10, 3, 0.5806415854686175)]
+
+entanglement_data = twoQ_threeG
+no_entanglement_data = no_twoQ_threeG
+n_qubits = 2
 
 # Extract data for plotting
 n_layers_ent = [(item[0] * item[1] * item[2]) for item in entanglement_data]
@@ -55,7 +58,7 @@ plt.plot(n_layers_no_ent, tightness_ratios_no_ent, color='red', linewidth=3,
 # Add titles and labels
 plt.xlabel('Number of Parameters', fontsize=12)
 plt.ylabel('Measured Norm / Theoretical Bound (%)', fontsize=12)
-plt.title('Bound Tightness Comparison: 2-Qubit QNN with 3 Gates', fontsize=14)
+plt.title(f'Bound Tightness Comparison: {n_qubits}-Qubit QNN with 3 Gates', fontsize=14)
 plt.legend(fontsize=11, loc='best')
 plt.grid(axis='both', linestyle='--', alpha=0.5)
 plt.gca().set_facecolor("#f5f5f5")
