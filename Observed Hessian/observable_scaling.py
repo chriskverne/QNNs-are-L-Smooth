@@ -84,7 +84,6 @@ def plot_results(hessian_norms, bound, P):
 # Main execution block
 # ==================================================================
 if __name__ == '__main__':
-    results_data = []
 
     """
     Experiment 1: Fix N_qubits, N_Gates, Increase N_Layers
@@ -92,67 +91,32 @@ if __name__ == '__main__':
     N_Gates = 2 or 3 sounds good
     """
     n_samples = 100
-    n_gates = 3
+    n_layers = 2
     n_qubits = 4
-    n_layer_combos = [1,2,3,4] # [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    n_gates = 3
     entanglement = False
-    observable_coeffs = [1 / n_qubits] * n_qubits # STANDARD Zi MEASURMENT ALL QUBITS
-    observable_ops = [qml.PauliZ(i) for i in range(n_qubits)] # STANDARD Zi MEASURMENT ALL QUBITS
+    observable_ops = [qml.PauliZ(0), qml.PauliX(1)]
 
+    experiment_results = []
+    weights_to_test = pnp.linspace(0.1, 5.0, 10)
+    samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
 
-    for n_layers in n_layer_combos:
-        # --- QNN and Data Generation ---
-        qnn = create_qnn(n_layers, n_qubits, n_gates, observable_coeffs, observable_ops, entangled=entanglement)
-        samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
+    for w in weights_to_test:
+        # --- Define the observable for this iteration ---
+        coeffs = pnp.array([w, 2.0])  # Using a fixed second coeff to make norm non-trivial (we can try adjusting this later)
 
-        # --- Theoretical Bound Calculation ---
-        P = n_layers * n_qubits * n_gates
-        norm_M = 1.0
-        L_bound = P * norm_M
+        # Calculate the theoretical spectral norm of M
+        temp_hamiltonian = qml.Hamiltonian(coeffs, observable_ops)
+        norm_M = pnp.max(pnp.abs(temp_hamiltonian.eigvals()))
 
-        # --- Experiment ---
+        # --- QNN and Bound Calculation for this M ---
+        qnn = create_qnn(n_layers, n_qubits, n_gates, coeffs, observable_ops, entangled=entanglement)
+        L_bound = n_layers * n_qubits * n_gates * norm_M
+
+        # --- Run Experiment ---
         hessian_norms = calculate_hessian_norms(qnn, samples)
+        max_measured_norm = pnp.max(hessian_norms)
 
-        # --- Visualization ---
-        #plot_results(hessian_norms, L_bound, P)
-
-        # --- Verification ---
-        all_within_bound = all(norm <= L_bound for norm in hessian_norms)
-        print("--- Experiment Setup ---")
-        print(f"Number of Layers: {n_layers}, Number of Qubits: {n_qubits}, Number of Gates: {n_gates}, Total Parameters (P): {P}")
-        print(f"Theoretical L-Smoothness Bound (L <= P): {L_bound:.4f}")
-        print(f"Largest Hessian Norm: {pnp.max(hessian_norms)}")
-        results_data.append((n_layers, n_qubits, n_gates, pnp.max(hessian_norms)))
-
-    # observable_ops = [qml.PauliZ(0), qml.PauliX(1)]
-    #
-    # experiment_results = []
-    #
-    # n_layers = 2
-    # weights_to_test = pnp.linspace(0.1, 5.0, 15)
-    #
-    # samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
-    # for w in weights_to_test:
-    #
-    #     # --- Define the observable for this iteration ---
-    #     coeffs = pnp.array([w, 2.0])  # Using a fixed second coeff to make norm non-trivial
-    #
-    #     # Calculate the theoretical spectral norm of M
-    #     # For a Hamiltonian, this is its largest absolute eigenvalue
-    #     temp_hamiltonian = qml.Hamiltonian(coeffs, observable_ops)
-    #     norm_M = pnp.max(pnp.abs(temp_hamiltonian.eigvals()))
-    #
-    #     # --- QNN and Bound Calculation for this M ---
-    #     qnn = create_qnn(n_layers, n_qubits, n_gates, coeffs, observable_ops, entangled=entanglement)
-    #     L_bound = n_layers * n_qubits * n_gates * norm_M
-    #
-    #     # --- Run Experiment ---
-    #     hessian_norms = calculate_hessian_norms(qnn, samples)
-    #     max_measured_norm = pnp.max(hessian_norms)
-    #
-    #     # --- Store and Print Results ---
-    #     experiment_results.append((norm_M, max_measured_norm))
-    #     print(f"Weight w={w:.2f} -> ||M||_2={norm_M:.4f}, L_bound={L_bound:.4f}, L_max={max_measured_norm:.4f}")
-    #
-    #
-    print(results_data)
+        # --- Store and Print Results ---
+        experiment_results.append((norm_M, max_measured_norm))
+        print(f"Weight w={w:.2f} -> ||M||_2={norm_M:.4f}, L_bound={L_bound:.4f}, L_max={max_measured_norm:.4f}")

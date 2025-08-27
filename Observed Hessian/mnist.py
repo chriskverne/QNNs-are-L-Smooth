@@ -262,7 +262,7 @@ def train_qnn_param_shift(x, y, n_layers, n_qubits, n_gates, n_epochs, lr=0.001,
 
 
 # --------------------------------- Model Setup ---------------------------
-df = pd.read_csv('./data/four_digit.csv')
+df = pd.read_csv('../data/four_digit.csv')
 x = df.drop('label', axis=1).values
 y = df['label'].values
 
