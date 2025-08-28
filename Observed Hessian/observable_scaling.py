@@ -95,15 +95,21 @@ if __name__ == '__main__':
     n_qubits = 4
     n_gates = 3
     entanglement = False
-    observable_ops = [qml.PauliZ(0), qml.PauliX(1)]
+    #observable_ops = [qml.PauliZ(0), qml.PauliX(1)]
+    observable_ops = [
+        qml.PauliZ(0) @ qml.PauliZ(1),
+        qml.PauliX(0),
+        qml.PauliX(1)
+    ]
 
     experiment_results = []
-    weights_to_test = pnp.linspace(0.1, 5.0, 10)
+    weights_to_test = pnp.linspace(0.1, 5.0, 15) # Use 15 points for a smoother plot
     samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
 
     for w in weights_to_test:
         # --- Define the observable for this iteration ---
-        coeffs = pnp.array([w, 2.0])  # Using a fixed second coeff to make norm non-trivial (we can try adjusting this later)
+        #coeffs = pnp.array([w, 2.0])  # Using a fixed second coeff to make norm non-trivial (we can try adjusting this later)
+        coeffs = pnp.array([1.0, w, w])
 
         # Calculate the theoretical spectral norm of M
         temp_hamiltonian = qml.Hamiltonian(coeffs, observable_ops)
@@ -118,5 +124,10 @@ if __name__ == '__main__':
         max_measured_norm = pnp.max(hessian_norms)
 
         # --- Store and Print Results ---
-        experiment_results.append((norm_M, max_measured_norm))
+        experiment_results.append((w, norm_M, max_measured_norm))
         print(f"Weight w={w:.2f} -> ||M||_2={norm_M:.4f}, L_bound={L_bound:.4f}, L_max={max_measured_norm:.4f}")
+
+    print(experiment_results)
+
+# M = z0*z1 + w (x0 + x1) then adjust w
+# n_qubits = 4, n_layers = 2, n_gates = 3
