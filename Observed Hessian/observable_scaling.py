@@ -92,7 +92,7 @@ if __name__ == '__main__':
     """
     n_samples = 100
     n_layers = 2
-    n_qubits = 4
+    n_qubits = 8
     n_gates = 3
     entanglement = False
     #observable_ops = [qml.PauliZ(0), qml.PauliX(1)]
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     ]
 
     experiment_results = []
-    weights_to_test = pnp.linspace(0.1, 5.0, 15) # Use 15 points for a smoother plot
+    weights_to_test = pnp.linspace(0.1, 5.0, 10) # Use 15 points for a smoother plot
     samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
 
     for w in weights_to_test:
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         max_measured_norm = pnp.max(hessian_norms)
 
         # --- Store and Print Results ---
-        experiment_results.append((w, norm_M, max_measured_norm))
+        experiment_results.append((norm_M.item(), max_measured_norm.item(), L_bound.item()))
         print(f"Weight w={w:.2f} -> ||M||_2={norm_M:.4f}, L_bound={L_bound:.4f}, L_max={max_measured_norm:.4f}")
 
     print(experiment_results)
