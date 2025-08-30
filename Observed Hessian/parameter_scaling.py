@@ -61,25 +61,6 @@ def calculate_hessian_norms(qnn, samples):
 
     return hessian_norms
 
-
-def plot_results(hessian_norms, bound, P):
-    sns.set_theme(style="whitegrid")
-    plt.figure(figsize=(10, 6))
-    # Plot the individual Hessian norms
-    plt.scatter(range(len(hessian_norms)), hessian_norms, label='Experimental Hessian Norm', color='royalblue',
-                zorder=5)
-    # Plot the theoretical bound
-    plt.axhline(y=bound, color='crimson', linestyle='--', linewidth=2, label=f'Theoretical Bound (L = P = {P})')
-
-    plt.title('Experimental Verification of L-Smoothness Bound', fontsize=16)
-    plt.xlabel('Parameter Sample Index', fontsize=12)
-    plt.ylabel('Spectral Norm of Hessian', fontsize=12)
-    plt.legend(fontsize=10)
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-    plt.tight_layout()
-    plt.show()
-
-
 # ==================================================================
 # Main execution block
 # ==================================================================
@@ -99,7 +80,6 @@ if __name__ == '__main__':
     observable_coeffs = [1 / n_qubits] * n_qubits # STANDARD Zi MEASURMENT ALL QUBITS
     observable_ops = [qml.PauliZ(i) for i in range(n_qubits)] # STANDARD Zi MEASURMENT ALL QUBITS
 
-
     for n_layers in n_layer_combos:
         # --- QNN and Data Generation ---
         qnn = create_qnn(n_layers, n_qubits, n_gates, observable_coeffs, observable_ops, entangled=entanglement)
@@ -113,9 +93,6 @@ if __name__ == '__main__':
         # --- Experiment ---
         hessian_norms = calculate_hessian_norms(qnn, samples)
 
-        # --- Visualization ---
-        #plot_results(hessian_norms, L_bound, P)
-
         # --- Verification ---
         all_within_bound = all(norm <= L_bound for norm in hessian_norms)
         print("--- Experiment Setup ---")
@@ -124,35 +101,4 @@ if __name__ == '__main__':
         print(f"Largest Hessian Norm: {pnp.max(hessian_norms)}")
         results_data.append((n_layers, n_qubits, n_gates, pnp.max(hessian_norms)))
 
-    # observable_ops = [qml.PauliZ(0), qml.PauliX(1)]
-    #
-    # experiment_results = []
-    #
-    # n_layers = 2
-    # weights_to_test = pnp.linspace(0.1, 5.0, 15)
-    #
-    # samples = generate_parameter_samples(n_layers, n_qubits, n_samples, n_gates=n_gates)
-    # for w in weights_to_test:
-    #
-    #     # --- Define the observable for this iteration ---
-    #     coeffs = pnp.array([w, 2.0])  # Using a fixed second coeff to make norm non-trivial
-    #
-    #     # Calculate the theoretical spectral norm of M
-    #     # For a Hamiltonian, this is its largest absolute eigenvalue
-    #     temp_hamiltonian = qml.Hamiltonian(coeffs, observable_ops)
-    #     norm_M = pnp.max(pnp.abs(temp_hamiltonian.eigvals()))
-    #
-    #     # --- QNN and Bound Calculation for this M ---
-    #     qnn = create_qnn(n_layers, n_qubits, n_gates, coeffs, observable_ops, entangled=entanglement)
-    #     L_bound = n_layers * n_qubits * n_gates * norm_M
-    #
-    #     # --- Run Experiment ---
-    #     hessian_norms = calculate_hessian_norms(qnn, samples)
-    #     max_measured_norm = pnp.max(hessian_norms)
-    #
-    #     # --- Store and Print Results ---
-    #     experiment_results.append((norm_M, max_measured_norm))
-    #     print(f"Weight w={w:.2f} -> ||M||_2={norm_M:.4f}, L_bound={L_bound:.4f}, L_max={max_measured_norm:.4f}")
-    #
-    #
     print(results_data)
