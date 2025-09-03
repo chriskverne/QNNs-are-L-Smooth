@@ -5,11 +5,6 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 import pandas as pd
 
-"""
-These parameters were randomly initialized and represents the starting point of each optimizer. 
-Ensuring fairness when comparing the training curves
-"""
-
 # 2 layers, 4 qubits
 two_four = pnp.array([
     [[1.74893948, 4.97321702],
@@ -132,22 +127,6 @@ def create_qnn(n_layers, n_qubits):
     return circuit
 
 def create_qnn_non_smooth(n_layers, n_qubits):
-    """
-    Creates a QNN with a non-smooth landscape.
-
-    The non-smoothness is introduced by applying a non-differentiable activation
-    function to the parameters before they are used as rotation angles. We use a
-    triangle wave function which is periodic but has non-differentiable "cusps",
-    analogous to how a ReLU activation function introduces non-smoothness in a
-    classical neural network.
-
-    Args:
-        n_layers (int): The number of layers in the QNN.
-        n_qubits (int): The number of qubits.
-
-    Returns:
-        A Pennylane QNode.
-    """
     dev = qml.device('default.qubit', wires=n_qubits)
 
     def triangle_activation(x):
@@ -261,16 +240,90 @@ def train_qnn_param_shift(x, y, n_layers, n_qubits, n_gates, n_epochs, lr=0.001,
     return params, loss_history
 
 
+# def calculate_hessian_norms(qnn, samples):
+#     hessian_norms = []
+#     hessian_fn = qml.jacobian(qml.grad(qnn))
+#     for i, params in enumerate(samples):
+#         # Output of QNN only accepts flat parameter vector
+#         flat_params = params.flatten()
+#         def cost_fn_flat(p_flat):
+#             p_reshaped = p_flat.reshape(params.shape)
+#             return qnn(p_reshaped)
+#
+#         # Calculate hessian matrix
+#         hessian_matrix = qml.jacobian(qml.grad(cost_fn_flat))(flat_params)
+#
+#         # Calculate the spectral norm (largest singular value) of the Hessian = largest absolute eigenvalue.
+#         spectral_norm = pnp.linalg.norm(hessian_matrix, ord=2)
+#         hessian_norms.append(spectral_norm)
+#
+#     return hessian_norms
+
+
+def calculate_hessian_norms(qnn, parameter_sets, data_x, data_y):
+    """
+    Calculates the spectral norm of the Hessian of the loss function.
+
+    Args:
+        qnn (qml.QNode): The quantum neural network circuit.
+        parameter_sets (pnp.array): An array of parameter sets to evaluate.
+                                    The function will calculate a Hessian for each set.
+        data_x (pnp.array): The input feature data.
+        data_y (pnp.array): The input label data.
+    """
+    hessian_norms = []
+
+    # We will calculate the Hessian with respect to the first data sample.
+    # In a more advanced scenario, you might average Hessians over a batch.
+    image = data_x[0]
+    label = data_y[0]
+
+    print(f"Calculating Hessian norms for {len(parameter_sets)} parameter set(s)...")
+    print(f"Using data point 0 with label {label} for loss calculation.")
+
+    for params in tqdm(parameter_sets, desc="Processing Parameter Sets"):
+        # The original shape is needed to reshape the flat vector inside the cost function.
+        original_shape = params.shape
+
+        # Define a cost function that takes a flat parameter vector,
+        # reshapes it, and computes the loss for our chosen data point.
+        def cost_fn_flat(p_flat):
+            # Reshape parameters to the format expected by the QNN
+            p_reshaped = p_flat.reshape(original_shape)
+
+            # Get the QNN output distribution for the specific image
+            output_distribution = qnn(image, p_reshaped)
+
+            # Calculate the cross-entropy loss
+            return cross_entropy_loss(output_distribution, label)
+
+        # Flatten the current parameter set to pass to the new cost function
+        flat_params = params.flatten()
+
+        # Calculate the Hessian matrix (Jacobian of the gradient)
+        hessian_matrix = qml.jacobian(qml.grad(cost_fn_flat))(flat_params)
+
+        # Calculate the spectral norm (largest singular value), which for a
+        # symmetric matrix like the Hessian is the largest absolute eigenvalue.
+        spectral_norm = pnp.linalg.norm(hessian_matrix, ord=2)
+        hessian_norms.append(spectral_norm)
+
+    return hessian_norms
+
 # --------------------------------- Model Setup ---------------------------
 df = pd.read_csv('../data/four_digit.csv')
 x = df.drop('label', axis=1).values
 y = df['label'].values
 
-n_qubits = 8
-n_layers = 3
+n_samples = 100
+n_qubits = 4
+n_layers = 2
 n_gates = 2
 n_epochs = 300
 x = preprocess_image(x, n_qubits)
 
 print(f"{n_layers} Layers, {n_qubits} Qubits")
-train_qnn_param_shift(x, y, n_layers, n_qubits, n_gates, n_epochs, lr=0.01, smooth=False)
+#train_qnn_param_shift(x, y, n_layers, n_qubits, n_gates, n_epochs, lr=0.01, smooth=True)
+my_qnn = create_qnn(n_layers, n_qubits)
+res = calculate_hessian_norms(my_qnn, two_four, x, y)
+print(res)
