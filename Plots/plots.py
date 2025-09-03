@@ -1,5 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
+import matplotlib.patches as mpatches
+
+
+from sympy.printing.pretty.pretty_symbology import line_width
 
 # ==================================================================
 # 1. DATA
@@ -41,43 +46,80 @@ data_Gk_scaling = {
 # 2. PLOTTING LOGIC P SCALING
 # ==================================================================
 def plot_P():
-    fig, ax = plt.subplots(figsize=(14, 8))
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_facecolor('gainsboro')
 
     colors = {1: 'orange', 2: 'orangered', 4: 'royalblue', 8: 'forestgreen', 10: 'purple'}
-    markers = {2: 'o', 4: 's', 8: '^', 10: 'D'}
+    markers = {1: 'o', 2: 'o', 4: 'o', 8: 'o', 10: 'o'}
 
+    # Plot data... (omitted for brevity, same as before)
     # Plot data WITH entanglement (solid lines)
     for n_qubits, data_points in data_with_entanglement.items():
-        # CORRECTED: Calculate P (x-axis) as layers * qubits * gates
         params = [p[0] * p[1] * p[2] for p in data_points]
-        # CORRECTED: Calculate the ratio % (y-axis) as (norm / P) * 100
         ratios = [(p[3] / (p[0] * p[1] * p[2])) * 100 for p in data_points]
         ax.plot(params, ratios,
                 marker=markers.get(n_qubits),
                 linestyle='-',
                 color=colors.get(n_qubits),
-                label=f'n={n_qubits}, With Entanglement')
+                linewidth=3)
 
     # Plot data NO entanglement (dashed lines)
     for n_qubits, data_points in data_no_entanglement.items():
-        # CORRECTED: Calculate P (x-axis) as layers * qubits * gates
         params = [p[0] * p[1] * p[2] for p in data_points]
-        # CORRECTED: Calculate the ratio % (y-axis) as (norm / P) * 100
         ratios = [(p[3] / (p[0] * p[1] * p[2])) * 100 for p in data_points]
         ax.plot(params, ratios,
-                marker=markers.get(n_qubits),
                 linestyle='--',
                 color=colors.get(n_qubits),
-                label=f'n={n_qubits}, No Entanglement')
+                linewidth=3)
 
     # ==================================================================
     # 3. STYLING THE PLOT
     # ==================================================================
-    # ax.set_title('Bound Tightness Decreases with Qubit Count', fontsize=16)
-    ax.set_xlabel('Number of Parameters (P)', fontsize=12)
-    ax.set_ylabel('Measured Norm / Theoretical Bound (%)', fontsize=12)
-    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-    ax.legend(title='QNN Architecture', fontsize=10)
+    ax.set_xlabel('Number of Parameters (P)', fontsize=14)
+    ax.set_ylabel('$L_{max}$ / $L_{upper}$ (%)', fontsize=16)
+    ax.minorticks_on()
+    ax.grid(True, which='major', linestyle='-', linewidth=2.0, alpha=1)
+    ax.grid(True, which='minor', linestyle='-', linewidth=1, alpha=0.4)
+
+
+    # --- Create Legend Handles ---
+    handles_qubits = [
+        Line2D([0], [0], marker='s', color='orange', markersize=8, lw=0, label='n=1'),
+        Line2D([0], [0], marker='s', color='orangered', markersize=8, lw=0, label='n=2'),
+        Line2D([0], [0], marker='s', color='royalblue', markersize=8, lw=0, label='n=4'),
+        Line2D([0], [0], marker='s', color='forestgreen', markersize=8, lw=0, label='n=8'),
+        Line2D([0], [0], marker='s', color='purple', markersize=8, lw=0, label='n=10'),
+    ]
+    handles_type = [
+        Line2D([0], [0], color='black', lw=2, linestyle='-', label='With Entanglement'),
+        Line2D([0], [0], color='black', lw=2, linestyle='--', label='No Entanglement')
+    ]
+
+    # --- Create Two Separate, Styled, and Aligned Legends ---
+
+    # 1. Create the first legend for the qubits and save it to a variable.
+    leg1 = ax.legend(handles=handles_qubits,
+                     title='VQA Architecture',
+                     bbox_to_anchor=(0.98, 0.98), loc='upper right', ncol=5,
+                     fancybox=True, facecolor='white', edgecolor='black',
+                     fontsize=14, framealpha=1.0, columnspacing=1.0,
+                     handletextpad=0.5, title_fontsize=14)
+    # Manually add the first legend so it isn't overwritten by the second call.
+    ax.add_artist(leg1)
+
+    # 2. Create the second legend for the entanglement types.
+    #    Adjusted the vertical position from 0.88 to 0.85 to add spacing.
+    ax.legend(handles=handles_type,
+              bbox_to_anchor=(0.98, 0.85), loc='upper right', ncol=2, # KEY CHANGE HERE
+              fancybox=True,
+              edgecolor='black',
+              facecolor='white',
+              framealpha=1.0,
+              fontsize=14,
+              columnspacing=1.0,
+              handletextpad=0.5)
+
+    ax.tick_params(labelsize=14)
 
     plt.tight_layout()
     plt.show()
@@ -85,29 +127,38 @@ def plot_P():
 
 def plot_M():
     fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_facecolor('gainsboro')
 
     # Extract data for element 2
     m_norms_2 = [point[0] for point in data_M_scaling[2]]
-    ratios_2 = [point[1] / point[2] for point in data_M_scaling[2]]  # L_max / L_upper
+    ratios_2 = [100 * point[1] / point[2] for point in data_M_scaling[2]]  # L_max / L_upper as percentage
 
     # Extract data for element 4
     m_norms_4 = [point[0] for point in data_M_scaling[4]]
-    ratios_4 = [point[1] / point[2] for point in data_M_scaling[4]]  # L_max / L_upper
+    ratios_4 = [100 * point[1] / point[2] for point in data_M_scaling[4]]  # L_max / L_upper as percentage
 
-    # Extract data for element 4
+    # Extract data for element 8
     m_norms_8 = [point[0] for point in data_M_scaling[8]]
-    ratios_8 = [point[1] / point[2] for point in data_M_scaling[8]]  # L_max / L_upper
+    ratios_8 = [100 * point[1] / point[2] for point in data_M_scaling[8]]  # L_max / L_upper as percentage
 
-    ax.plot(m_norms_2, ratios_2, 'o-', color='red', linewidth=2, markersize=6, label='n=2')
-    ax.plot(m_norms_4, ratios_4, 'o-', color='blue', linewidth=2, markersize=6, label='n=4')
-    ax.plot(m_norms_8, ratios_8, 's-', color='green', linewidth=2, markersize=6, label='n=8')
-
-    ax.set_xlabel('||M|| Norm')
-    ax.set_ylabel('L_max / L_upper')
-    ax.set_ylim(0, 1)
-    ax.grid(True, linestyle='--', alpha=0.7)
-    ax.legend()
-
+    ax.plot(m_norms_2, ratios_2, color='red', linewidth=4, markersize=6, label='n=2')
+    ax.plot(m_norms_4, ratios_4, 'o-', color='blue', linewidth=4, markersize=8, label='n=4')
+    ax.plot(m_norms_8, ratios_8, 's-', color='green', linewidth=4, markersize=8, label='n=8')
+    ax.set_xlabel('$||M||_2$ Norm', fontsize=14)
+    ax.set_ylabel('$L_{max}$ / $L_{upper}$ (%)', fontsize=16)
+    ax.set_ylim(0, 100)  # Changed from (0, 1) to (0, 100)
+    ax.legend(title='VQA Architecture',
+              ncol=3,
+              fancybox=True,
+              edgecolor='black',
+              facecolor='white',
+              framealpha=1.0,
+              fontsize=14,
+              title_fontsize=14)
+    ax.minorticks_on()
+    ax.grid(True, which='major', linestyle='-', linewidth=2.0, alpha=1)
+    ax.grid(True, which='minor', linestyle='-', linewidth=1, alpha=0.4)
+    ax.tick_params(labelsize=14)
     plt.tight_layout()
     plt.show()
 
@@ -150,4 +201,6 @@ def plot_G():
     plt.show()
 
 
-plot_G()
+# plot_P()
+plot_M()
+# plot_G()
