@@ -98,7 +98,7 @@ def create_qnn_state(n_layers, n_qubits, n_gates, entangled=True):
     return circuit
 
 
-def calculate_expressibility_kld(qnn_state, n_layers, n_qubits, n_gates, n_fidelity_samples=1000):
+def calculate_expressibility_kld(qnn_state, n_layers, n_qubits, n_gates, n_fidelity_samples=100):
     """
     Calculates the expressibility metric (KL Divergence) as defined in Sim et al.
     """
@@ -144,8 +144,8 @@ if __name__ == '__main__':
     # --- Experiment Configuration ---
     n_hessian_samples = 100
     n_fidelity_samples = 2000
-    n_gates = 2
-    n_qubits = 4
+    n_gates = 3
+    n_qubits = 2
     n_layer_combos = range(1, 11)
     entanglement = True
 
