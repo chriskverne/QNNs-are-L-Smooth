@@ -72,10 +72,10 @@ if __name__ == '__main__':
     Either 2,3 or 4 qubits sounds good
     N_Gates = 2 or 3 sounds good
     """
-    n_samples = 100
+    n_samples = 1000
     n_gates = 3
-    n_qubits = 4
-    n_layer_combos = [1,2,3,4] # [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    n_qubits = 1
+    n_layer_combos = [1,5,10,15,20,25,30,35,40]#[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
     entanglement = False
     observable_coeffs = [1 / n_qubits] * n_qubits # STANDARD Zi MEASURMENT ALL QUBITS
     observable_ops = [qml.PauliZ(i) for i in range(n_qubits)] # STANDARD Zi MEASURMENT ALL QUBITS
