@@ -146,7 +146,7 @@ if __name__ == '__main__':
     n_fidelity_samples = 2000
     n_gates = 3
     n_qubits = 2
-    n_layer_combos = range(1, 11)
+    n_layer_combos = range(1, 21)
     entanglement = True
 
     observable_coeffs = [1.0]

@@ -40,13 +40,6 @@ data_Gk_scaling = {
     8: [(0, 0.3715, 48.00, 48.00), (25, 5.8104, 228.00, 768.00), (50, 5.8104, 408.00, 768.00), (75, 5.9469, 588.00, 768.00), (100, 5.9816, 768.00, 768.00)]
 }
 
-# KL vs Parameter Scaling
-# 2,4,8 Qubits , Entangelemnt, 3 Gates [1-10 Layers]
-#[{'layers': 1, 'P': 6, 'L_max_ratio': 0.3318576374824204, 'D_KL': 0.05440392634943307}, {'layers': 2, 'P': 12, 'L_max_ratio': 0.2139310344182754, 'D_KL': 0.021502161291199706}, {'layers': 3, 'P': 18, 'L_max_ratio': 0.2060053026190467, 'D_KL': 0.013409746400984131}, {'layers': 4, 'P': 24, 'L_max_ratio': 0.19748358164679916, 'D_KL': 0.018522306085856397}, {'layers': 5, 'P': 30, 'L_max_ratio': 0.21597246148738694, 'D_KL': 0.019334704267582138}, {'layers': 6, 'P': 36, 'L_max_ratio': 0.1903739996457256, 'D_KL': 0.019669463078819466}, {'layers': 7, 'P': 42, 'L_max_ratio': 0.18844286699178733, 'D_KL': 0.022385657166621265}, {'layers': 8, 'P': 48, 'L_max_ratio': 0.17782857037372382, 'D_KL': 0.015387487759360413}, {'layers': 9, 'P': 54, 'L_max_ratio': 0.18390644177901233, 'D_KL': 0.01431003557335625}, {'layers': 10, 'P': 60, 'L_max_ratio': 0.1758583634701901, 'D_KL': 0.019777026410283175}]
-#[{'layers': 1, 'P': 12, 'L_max_ratio': 0.1637990427601808, 'D_KL': 0.2338772466150277}, {'layers': 2, 'P': 24, 'L_max_ratio': 0.12098582775582319, 'D_KL': 0.02135498594226106}, {'layers': 3, 'P': 36, 'L_max_ratio': 0.08482524477416811, 'D_KL': 0.011179034709099913}, {'layers': 4, 'P': 48, 'L_max_ratio': 0.08342671107985349, 'D_KL': 0.009338308403378431}, {'layers': 5, 'P': 60, 'L_max_ratio': 0.061855452689485405, 'D_KL': 0.004920165050547805}, {'layers': 6, 'P': 72, 'L_max_ratio': 0.05827594153186555, 'D_KL': 0.006612911155774292}, {'layers': 7, 'P': 84, 'L_max_ratio': 0.05705149794073222, 'D_KL': 0.005822226327926969}, {'layers': 8, 'P': 96, 'L_max_ratio': 0.05299504397811419, 'D_KL': 0.008144022005582448}, {'layers': 9, 'P': 108, 'L_max_ratio': 0.06801924170547302, 'D_KL': 0.008122507761685365}, {'layers': 10, 'P': 120, 'L_max_ratio': 0.05822983034661855, 'D_KL': 0.005908770055948315}]
-#[{'layers': 1, 'P': 24, 'L_max_ratio': 0.08255271408457514, 'D_KL': 0.1765455907601364}, {'layers': 2, 'P': 48, 'L_max_ratio': 0.057895523236510045, 'D_KL': 0.060746621994808105}, {'layers': 3, 'P': 72, 'L_max_ratio': 0.05120352937959477, 'D_KL': 0.004552686304385713}, {'layers': 4, 'P': 96, 'L_max_ratio': 0.03524512995691607, 'D_KL': 0.0017037048881130452}, {'layers': 5, 'P': 120, 'L_max_ratio': 0.02850950701371178, 'D_KL': 0.0005379930594233187}]
-
-
 # ==================================================================
 # 2. PLOTTING LOGIC P SCALING
 # ==================================================================
@@ -170,6 +163,8 @@ def plot_M():
 
 def plot_G():
     fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_facecolor('gainsboro')
+
 
     # Extract data from data_Gk_scaling
     for n_qubits, data_points in data_Gk_scaling.items():
@@ -187,19 +182,19 @@ def plot_G():
         width = 0.35
 
         # Create bars
-        bars1 = ax.bar(x - width / 2, norm1, width, label=f'L_max / Our Bound (n={n_qubits})', alpha=0.8)
-        bars2 = ax.bar(x + width / 2, norm2, width, label=f'L_max / Liu Bound (n={n_qubits})', alpha=0.8)
-        # ax.plot(x - width / 2, norm1, width, label=f'L_max / Our Bound (n={n_qubits})', alpha=0.8)
-        # ax.plot(x + width / 2, norm2, width, label=f'L_max / Liu Bound (n={n_qubits})', alpha=0.8)
-
+        bars1 = ax.bar(x - width / 2, norm1, width, label=f'L_max / Our Bound (n={n_qubits})', alpha=0.8, hatch='///')
+        bars2 = ax.bar(x + width / 2, norm2, width, label=f'L_max / Liu Bound (n={n_qubits})', alpha=0.8, hatch='ooo')
         # Set x-axis labels
         ax.set_xticks(x)
         ax.set_xticklabels([f'{r}%' for r in ratios])
-
-    ax.set_xlabel('Ratio (%)')
-    ax.set_ylabel('L_max / L_bound')
+        ax.tick_params(axis='x', labelsize=14)
+        ax.tick_params(axis='y', labelsize=14)
+    ax.set_xlabel('Ratio Standard v.s. Weighted $G_k$ (%)', fontsize=14)
+    ax.set_ylabel('$L_max$ / $L_upper$ (%)', fontsize=14)
     # ax.set_ylim(0, 1)
-    ax.grid(True, linestyle='--', alpha=0.7)
+    ax.minorticks_on()
+    ax.grid(True, which='major', linestyle='-', linewidth=1, alpha=1)
+    ax.grid(True, which='minor', linestyle='-', linewidth=1, alpha=0.4)
     ax.legend()
 
     plt.tight_layout()
@@ -208,4 +203,4 @@ def plot_G():
 
 # plot_P()
 # plot_M()
-# plot_G()
+plot_G()
