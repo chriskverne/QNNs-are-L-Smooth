@@ -46,6 +46,8 @@ def calculate_hessian_norms(qnn, samples):
     hessian_norms = []
     hessian_fn = qml.jacobian(qml.grad(qnn))
     for i, params in enumerate(samples):
+        if i % 10 == 0:
+            print(f'Sample {i}')
         # Output of QNN only accepts flat parameter vector
         flat_params = params.flatten()
         def cost_fn_flat(p_flat):
@@ -72,7 +74,7 @@ if __name__ == '__main__':
     Either 2,3 or 4 qubits sounds good
     N_Gates = 2 or 3 sounds good
     """
-    n_samples = 1000
+    n_samples = 2000
     n_gates = 3
     n_qubits = 4
     n_layers = 4 #[1,5,10,15,20,25,30,35,40]#[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
@@ -101,15 +103,17 @@ if __name__ == '__main__':
     #results_data.append((n_layers, n_qubits, n_gates, pnp.max(hessian_norms)))
     print(hessian_norms)
 
-    # r1 =  hessian_norms[0:10] #10 first samples
-    # r2 = hessian_norms[10:60] #50 next samples
-    # r3 = hessian_norms[60:160] #100
-    # r4 = hessian_norms[160:410] #250
-    # r5 = hessian_norms[410:910] #500
-    # r6 = hessian_norms[910:1910] #1000
+    r1 =  hessian_norms[0:10] #10 first samples
+    r2 = hessian_norms[10:60] #50 next samples
+    r3 = hessian_norms[60:160] #100
+    r4 = hessian_norms[160:410] #250
+    r5 = hessian_norms[410:910] #500
+    r6 = hessian_norms[910:1910] #1000
     # r7 = hessian_norms[1910:3910] #2000
     # r8 = hessian_norms[3910:7910] #4000
-    #print('10 samples: ',pnp.max(r1), ' 50 samples: ', pnp.max(r2), ' 100 samples: ', pnp.max(r3), ' 250 samples: ', pnp.max(r4),' 500 samples: ', pnp.max(r5), ' 1000 samples: ',pnp.max(r6), ' 2000 samples: ',pnp.max(r7), '4000 samples: ',pnp.max(r8))
+    print('10 samples: ',pnp.max(r1), ' 50 samples: ', pnp.max(r2), ' 100 samples: ', pnp.max(r3), ' 250 samples: ', pnp.max(r4),' 500 samples: ', pnp.max(r5), ' 1000 samples: ',pnp.max(r6))
+
+    # print('10 samples: ',pnp.max(r1), ' 50 samples: ', pnp.max(r2), ' 100 samples: ', pnp.max(r3), ' 250 samples: ', pnp.max(r4),' 500 samples: ', pnp.max(r5), ' 1000 samples: ',pnp.max(r6), ' 2000 samples: ',pnp.max(r7), '4000 samples: ',pnp.max(r8))
     print(results_data)
     ######################
     # 10
