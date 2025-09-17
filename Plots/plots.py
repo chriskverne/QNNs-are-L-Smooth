@@ -201,6 +201,6 @@ def plot_G():
     plt.show()
 
 
-# plot_P()
-# plot_M()
+plot_P()
+plot_M()
 plot_G()
