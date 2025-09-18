@@ -138,7 +138,7 @@ if __name__ == '__main__':
     all_results = []
 
     # --- Experiment Configuration ---
-    n_samples = 100  # Use 1000 for final run
+    n_samples = 100 # Use 1000 for final run
     n_qubits = 4  # 4 qubits is a great choice
     n_gates = 3  # All architectures will use 3 gates per qubit per layer
 
@@ -184,13 +184,13 @@ if __name__ == '__main__':
     # --- Process and Plot Results ---
     results_df = pd.DataFrame(all_results)
 
-    plt.figure(figsize=(10, 6))
-    sns.lineplot(data=results_df, x="P", y="Ratio", hue="Architecture", marker="o", style="Architecture")
-    plt.xlabel("Number of Parameters (P)")
-    plt.ylabel(r"$\tilde{L}_{max} / L_{upper}$ (%)")
-    plt.title(f"Curvature Ratio Scaling for Different {n_qubits}-Qubit Ansaetze")
-    plt.grid(True, which='both', linestyle='--')
-    plt.legend(title="Ansatz Architecture")
-    plt.tight_layout()
-    plt.savefig("ansatz_comparison_final.png")
-    plt.show()
+    # plt.figure(figsize=(10, 6))
+    # sns.lineplot(data=results_df, x="P", y="Ratio", hue="Architecture", marker="o", style="Architecture")
+    # plt.xlabel("Number of Parameters (P)")
+    # plt.ylabel(r"$\tilde{L}_{max} / L_{upper}$ (%)")
+    # plt.title(f"Curvature Ratio Scaling for Different {n_qubits}-Qubit Ansaetze")
+    # plt.grid(True, which='both', linestyle='--')
+    # plt.legend(title="Ansatz Architecture")
+    # plt.tight_layout()
+    # plt.savefig("ansatz_comparison_final.png")
+    # plt.show()

@@ -46,8 +46,8 @@ def calculate_hessian_norms(qnn, samples):
     hessian_norms = []
     hessian_fn = qml.jacobian(qml.grad(qnn))
     for i, params in enumerate(samples):
-        if i % 10 == 0:
-            print(f'Sample {i}')
+        # if i % 10 == 0:
+        #     print(f'Sample {i}')
         # Output of QNN only accepts flat parameter vector
         flat_params = params.flatten()
         def cost_fn_flat(p_flat):
@@ -74,10 +74,10 @@ if __name__ == '__main__':
     Either 2,3 or 4 qubits sounds good
     N_Gates = 2 or 3 sounds good
     """
-    n_samples = 1000
+    n_samples = 250 #1000
     n_gates = 3
     n_qubits = 4
-    n_layers = 10 #[1,5,10,15,20,25,30,35,40]#[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    n_layers = 5 #[1,5,10,15,20,25,30,35,40]#[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
     entanglement = False
     observable_coeffs = [1 / n_qubits] * n_qubits # STANDARD Zi MEASURMENT ALL QUBITS
     observable_ops = [qml.PauliZ(i) for i in range(n_qubits)] # STANDARD Zi MEASURMENT ALL QUBITS
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
         # --- Verification ---
         all_within_bound = all(norm <= L_bound for norm in hessian_norms)
-        print("--- Experiment Setup ---")
+        #print("--- Experiment Setup ---")
         # print(f"Number of Layers: {n_layers}, Number of Qubits: {n_qubits}, Number of Gates: {n_gates}, Total Parameters (P): {P}")
         # print(f"Theoretical L-Smoothness Bound (L <= P): {L_bound:.4f}")
         print(f"Largest Hessian Norm Sample {i}: {pnp.max(hessian_norms)}")
