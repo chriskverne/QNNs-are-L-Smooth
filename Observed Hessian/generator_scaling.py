@@ -64,7 +64,7 @@ def calculate_max_hessian_norm(qnn, samples):
 if __name__ == '__main__':
     # --- Experiment Constants ---
     N_QUBITS = 8
-    N_LAYERS = 2
+    N_LAYERS = 4
     N_GATES = 3
     N_SAMPLES = 100
     P = N_QUBITS * N_LAYERS * N_GATES
