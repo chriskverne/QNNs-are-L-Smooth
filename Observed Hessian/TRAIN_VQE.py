@@ -174,7 +174,12 @@ if __name__ == '__main__':
     plt.plot(history_optimal, label=f'Optimal η ≈ {ETA_OPTIMAL:.4f}', color='royalblue', linewidth=2.5)
     plt.plot(history_high, label=f'High η = {ETA_HIGH:.4f}', color='indianred', linestyle='--', linewidth=2)
     plt.plot(history_low, label=f'Low η = {ETA_LOW:.4f}', color='Purple', linewidth=2)
-    plt.plot(history_low, label=f'Standard η = {ETA_STANDARD:.4f}', color='mediumseagreen', linestyle=':', linewidth=2)
+    plt.plot(history_standard, label=f'Standard η = {ETA_STANDARD:.4f}', color='mediumseagreen', linestyle=':', linewidth=2)
+
+    print(history_optimal)
+    print(history_high)
+    print(history_low)
+    print(history_standard)
 
     # Plot the exact ground state energy as a horizontal line
     plt.axhline(y=exact_eigenvalue, color='black', linestyle='-.', linewidth=1.5,
