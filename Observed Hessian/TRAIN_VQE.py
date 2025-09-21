@@ -85,17 +85,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # --- Configuration ---
-N_QUBITS = 2
-N_LAYERS = 10  # Increased from 4 to make the landscape more complex
+N_QUBITS = 4
+N_LAYERS = 8  # Increased from 4 to make the landscape more complex
 N_GATES_PER_ROTATION = 3  # RX, RY, RZ
-EPOCHS = 150  # Increased to allow for longer convergence time
+EPOCHS = 400  # Increased to allow for longer convergence time
 
 # --- Learning Rates to Compare ---
 # This value MUST be taken from the output of the updated 'compute_optimal_lr.py'.
-ETA_OPTIMAL = 0.0641 * 0.91
+ETA_OPTIMAL = 0.1126 * 0.91
 ETA_HIGH = ETA_OPTIMAL * 5.0
 ETA_LOW = ETA_OPTIMAL * 0.2
-ETA_STANDARD = 0.001
+ETA_STANDARD = 0.01
 
 def create_vqe_circuit(n_layers, n_qubits):
     """
@@ -141,8 +141,8 @@ def train_vqe(learning_rate, cost_fn):
     param_shape = (N_LAYERS, N_QUBITS, N_GATES_PER_ROTATION)
     initial_params = pnp.random.uniform(0, 2 * pnp.pi, size=param_shape, requires_grad=True)
 
-    optimizer = qml.AdamOptimizer(stepsize=learning_rate)
-    # optimizer = qml.GradientDescentOptimizer(stepsize=learning_rate)
+    # optimizer = qml.AdamOptimizer(stepsize=learning_rate)
+    optimizer = qml.GradientDescentOptimizer(stepsize=learning_rate)
 
     params = initial_params
     energy_history = []
@@ -164,15 +164,15 @@ if __name__ == '__main__':
     exact_eigenvalue = qml.eigvals(hamiltonian)[0]
 
     # 2. Train VQE with three different learning rates
-    history_optimal = train_vqe(ETA_OPTIMAL, vqe_circuit)
-    history_high = train_vqe(ETA_HIGH, vqe_circuit)
-    history_low = train_vqe(ETA_LOW, vqe_circuit)
+    # history_optimal = train_vqe(ETA_OPTIMAL, vqe_circuit)
+    # history_high = train_vqe(ETA_HIGH, vqe_circuit)
+    # history_low = train_vqe(ETA_LOW, vqe_circuit)
     history_standard = train_vqe(ETA_STANDARD, vqe_circuit)
 
-    print(f'Qubits: {N_QUBITS}, Layers: {N_LAYERS}')
-    print(f'Optimal {ETA_OPTIMAL}, {history_optimal}')
-    print(f'5x Optimal {ETA_HIGH}, {history_high}')
-    print(f'0.2 Optimal {ETA_LOW}, {history_low}')
+    # print(f'Qubits: {N_QUBITS}, Layers: {N_LAYERS}')
+    # print(f'Optimal {ETA_OPTIMAL}, {history_optimal}')
+    # print(f'5x Optimal {ETA_HIGH}, {history_high}')
+    # print(f'0.2 Optimal {ETA_LOW}, {history_low}')
     print(f'Standard Adam/SGD {ETA_STANDARD}, {history_standard}')
 
     # 3. Plot the results
