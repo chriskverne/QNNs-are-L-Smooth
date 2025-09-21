@@ -23,10 +23,10 @@ N_GATES_PER_ROTATION = 3  # RX, RY, RZ
 EPOCHS = 100
 
 # --- Learning Rates to Compare ---
-# Based on your data for 40 layers:
 ETA_OPTIMAL = 0.0224  # REPLACE with your computed value if different
 ETA_HIGH = ETA_OPTIMAL * 5.0
-ETA_LOW = 0.001 #ETA_OPTIMAL * 0.2
+ETA_LOW = ETA_OPTIMAL * 0.2
+ETA_STANDARD = 0.01
 
 
 def create_vqe_circuit(n_layers, n_qubits):
@@ -69,7 +69,7 @@ def train_vqe(learning_rate, cost_fn):
     param_shape = (N_LAYERS, N_QUBITS, N_GATES_PER_ROTATION)
     initial_params = pnp.random.uniform(0, 2 * pnp.pi, size=param_shape, requires_grad=True)
 
-    optimizer = qml.AdamOptimizer(stepsize=learning_rate)
+    optimizer = qml.GradientDescentOptimizer(stepsize=learning_rate)#qml.AdamOptimizer(stepsize=learning_rate)
     params = initial_params
     energy_history = []
 
@@ -88,6 +88,7 @@ if __name__ == '__main__':
     history_optimal = train_vqe(ETA_OPTIMAL, vqe_circuit)
     history_high = train_vqe(ETA_HIGH, vqe_circuit)
     history_low = train_vqe(ETA_LOW, vqe_circuit)
+    history_standard = train_vqe(ETA_STANDARD, vqe_circuit)
 
     # 3. Plot the results
     sns.set_theme(style="whitegrid")
@@ -95,7 +96,9 @@ if __name__ == '__main__':
 
     plt.plot(history_optimal, label=f'Optimal η = {ETA_OPTIMAL:.4f}', color='royalblue', linewidth=2.5)
     plt.plot(history_high, label=f'High η = {ETA_HIGH:.4f}', color='indianred', linestyle='--', linewidth=2)
-    plt.plot(history_low, label=f'Low η = {ETA_LOW:.4f}', color='mediumseagreen', linestyle=':', linewidth=2)
+    plt.plot(history_low, label=f'Low η = {ETA_LOW:.4f}', color='purple', linewidth=2)
+    plt.plot(history_standard, label=f'Standard η = {ETA_STANDARD:.4f}', color='mediumseagreen', linestyle=':', linewidth=2)
+
 
     plt.axhline(y=exact_eigenvalue, color='black', linestyle='-.', linewidth=1.5,
                 label=f'Exact Ground State = {exact_eigenvalue:.4f}')
