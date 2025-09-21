@@ -85,16 +85,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # --- Configuration ---
-N_QUBITS = 4
+N_QUBITS = 2
 N_LAYERS = 10  # Increased from 4 to make the landscape more complex
 N_GATES_PER_ROTATION = 3  # RX, RY, RZ
 EPOCHS = 150  # Increased to allow for longer convergence time
 
 # --- Learning Rates to Compare ---
 # This value MUST be taken from the output of the updated 'compute_optimal_lr.py'.
-ETA_OPTIMAL = 0.0612  # Placeholder: REPLACE with your newly computed value
-ETA_HIGH = ETA_OPTIMAL * 5.0  # Increased multiplier to show more instability
-ETA_LOW = ETA_OPTIMAL * 0.2  # Decreased multiplier to show slower convergence
+ETA_OPTIMAL = 0.0641 * 0.91
+ETA_HIGH = ETA_OPTIMAL * 5.0
+ETA_LOW = ETA_OPTIMAL * 0.2
 ETA_STANDARD = 0.001
 
 def create_vqe_circuit(n_layers, n_qubits):
@@ -142,6 +142,8 @@ def train_vqe(learning_rate, cost_fn):
     initial_params = pnp.random.uniform(0, 2 * pnp.pi, size=param_shape, requires_grad=True)
 
     optimizer = qml.AdamOptimizer(stepsize=learning_rate)
+    # optimizer = qml.GradientDescentOptimizer(stepsize=learning_rate)
+
     params = initial_params
     energy_history = []
 
@@ -167,33 +169,34 @@ if __name__ == '__main__':
     history_low = train_vqe(ETA_LOW, vqe_circuit)
     history_standard = train_vqe(ETA_STANDARD, vqe_circuit)
 
+    print(f'Qubits: {N_QUBITS}, Layers: {N_LAYERS}')
+    print(f'Optimal {ETA_OPTIMAL}, {history_optimal}')
+    print(f'5x Optimal {ETA_HIGH}, {history_high}')
+    print(f'0.2 Optimal {ETA_LOW}, {history_low}')
+    print(f'Standard Adam/SGD {ETA_STANDARD}, {history_standard}')
+
     # 3. Plot the results
-    sns.set_theme(style="whitegrid")
-    plt.figure(figsize=(12, 7))
-
-    plt.plot(history_optimal, label=f'Optimal η ≈ {ETA_OPTIMAL:.4f}', color='royalblue', linewidth=2.5)
-    plt.plot(history_high, label=f'High η = {ETA_HIGH:.4f}', color='indianred', linestyle='--', linewidth=2)
-    plt.plot(history_low, label=f'Low η = {ETA_LOW:.4f}', color='Purple', linewidth=2)
-    plt.plot(history_standard, label=f'Standard η = {ETA_STANDARD:.4f}', color='mediumseagreen', linestyle=':', linewidth=2)
-
-    print(history_optimal)
-    print(history_high)
-    print(history_low)
-    print(history_standard)
-
-    # Plot the exact ground state energy as a horizontal line
-    plt.axhline(y=exact_eigenvalue, color='black', linestyle='-.', linewidth=1.5,
-                label=f'Exact Ground State = {exact_eigenvalue:.4f}')
-
-    plt.title('VQE Convergence with a Deeper Circuit (15 Layers)', fontsize=16, fontweight='bold')
-    plt.xlabel('Optimization Steps (Epochs)', fontsize=12)
-    plt.ylabel('Energy (Expectation Value)', fontsize=12)
-    plt.xlim(0,40)
-    plt.legend(fontsize=11)
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-    plt.tight_layout()
-
-    print("\nDisplaying convergence plot...")
-    plt.show()
+    # sns.set_theme(style="whitegrid")
+    # plt.figure(figsize=(12, 7))
+    #
+    # plt.plot(history_optimal, label=f'Optimal η ≈ {ETA_OPTIMAL:.4f}', color='royalblue', linewidth=2.5)
+    # plt.plot(history_high, label=f'High η = {ETA_HIGH:.4f}', color='indianred', linestyle='--', linewidth=2)
+    # plt.plot(history_low, label=f'Low η = {ETA_LOW:.4f}', color='Purple', linewidth=2)
+    # plt.plot(history_standard, label=f'Standard η = {ETA_STANDARD:.4f}', color='mediumseagreen', linestyle=':', linewidth=2)
+    #
+    # # Plot the exact ground state energy as a horizontal line
+    # plt.axhline(y=exact_eigenvalue, color='black', linestyle='-.', linewidth=1.5,
+    #             label=f'Exact Ground State = {exact_eigenvalue:.4f}')
+    #
+    # plt.title('VQE Convergence with a Deeper Circuit (15 Layers)', fontsize=16, fontweight='bold')
+    # plt.xlabel('Optimization Steps (Epochs)', fontsize=12)
+    # plt.ylabel('Energy (Expectation Value)', fontsize=12)
+    # plt.xlim(0,40)
+    # plt.legend(fontsize=11)
+    # plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+    # plt.tight_layout()
+    #
+    # print("\nDisplaying convergence plot...")
+    # plt.show()
 
 

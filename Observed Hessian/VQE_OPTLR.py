@@ -3,8 +3,8 @@ from pennylane import numpy as pnp
 import itertools
 
 # --- Configuration ---
-N_QUBITS = 2
-N_LAYERS = 15 # Increased from 4 to 15
+N_QUBITS = 4
+N_LAYERS = 6 # Increased from 4 to 15
 N_GATES_PER_ROTATION = 3 # RX, RY, RZ
 N_SAMPLES = 200 # Reduced to speed up calculation for the larger circuit
 
