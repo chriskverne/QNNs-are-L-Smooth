@@ -82,7 +82,42 @@ fig.legend(reordered_handles, reordered_labels,
            frameon=False, fontsize='large')
 
 plt.tight_layout(rect=[0, 0, 1, 0.95]) # Adjust layout to make room for legend
-plt.show()
+# plt.show()
+
+
+data = {
+    2: [("Ising Model", 3.7272, 16.9706, 24.0000),
+        ("Heisenberg Model", 2.5893, 18.0000, 18.0000),
+        ("Mixed-Field Model", 4.0398, 28.3246, 38.4000)],
+    4: [("Ising Model", 2.9703, 33.9411, 48.0000),
+        ("Heisenberg Model", 1.9727, 36.0000, 36.0000),
+        ("Mixed-Field Model", 3.7227, 56.6493, 76.8000)],
+    8: [("Ising Model", 3.0685, 67.8823, 96.0000),
+        ("Heisenberg Model", 2.1658, 72.0000, 72.0000),
+        ("Mixed-Field Model", 3.6767, 113.2985, 153.6000)]
+}
+
+
+def compare_ratios(data):
+    for n_qubits, entries in data.items():
+        print(f"\n=== {n_qubits} qubits ===")
+        for obs, Lmax, B1, B2 in entries:
+            ratio1 = Lmax / B1 if B1 != 0 else float('inf')
+            ratio2 = Lmax / B2 if B2 != 0 else float('inf')
+
+            if ratio1 == ratio2:
+                status = "same"
+            elif ratio1 < ratio2:
+                diff = (1 - ratio1 / ratio2) * 100
+                status = f"{diff:.1f}% tighter"
+            else:
+                diff = (ratio1 / ratio2 - 1) * 100
+                status = f"{diff:.1f}% higher"
+
+            print(f"{obs:20}: Lmax/Bound1={ratio1:.4f}, Lmax/Bound2={ratio2:.4f} → {status}")
+
+
+compare_ratios(data)
 
 # # 2q 2l
 # # --- Running experiment for: Ising Model ---
